@@ -1,27 +1,45 @@
 package com.tombloom.javaengine;
 
+import com.tombloom.javaengine.configuration.Configuration;
+
 public class GameContainer implements Runnable{
 
     private Thread thread;
     private Window window;
+    private Renderer renderer;
+    private InputManager inputManager;
+    private AbstractGame game;
+
     private boolean isRunning;
     // At the moment capping fps to 60
-    private double updateCap = 1.0/60.0;
+    private double updateCap;
     private int framesPerSec = 0;
 
     private int width, height;
     private float scale = 1f;
     private String title = "Java Engine v0.001";
 
-    public GameContainer(){
-        width = 1280;
-        height = 720;
-
+    public GameContainer(AbstractGame game){
+        this.game = game;
         isRunning = false;
+
+        // Handles reading/writing of config file
+        Configuration config = new Configuration();
+        config.createFile();
+        config.readFile();
+
+        // Sets window width and height to what is in config file
+        width = config.getWindowWidth();
+        height = config.getWindowHeight();
+
+        // Set update cap to what is in config file
+        updateCap = 1.0/config.getFpsCap();
     }
 
     public void start(){
         window = new Window(this);
+        renderer = new Renderer(this);
+        inputManager = new InputManager(this);
 
         // Creates a thread -> GameContainer is the thread
         thread = new Thread(this);
@@ -68,6 +86,10 @@ public class GameContainer implements Runnable{
                 doRender = true;
 
                 // Updates game
+                game.update(this, (float)updateCap);
+
+                // Constantly looks for keys/mouse buttons
+                inputManager.update();
 
                 // Turns it into one second
                 if(frameTime >= 1f){
@@ -79,7 +101,8 @@ public class GameContainer implements Runnable{
             }
 
             if(doRender){
-                // TODO: Render code
+                renderer.clearScreen();
+                game.render(this, renderer);
                 window.updateWindow();
                 framesPassed++;
             }
@@ -98,11 +121,6 @@ public class GameContainer implements Runnable{
 
     private void dispose(){
 
-    }
-
-    public static void main(String[] args) {
-        GameContainer gameContainer = new GameContainer();
-        gameContainer.start();
     }
 
     public int getWidth() {
@@ -135,5 +153,13 @@ public class GameContainer implements Runnable{
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public Window getWindow() {
+        return window;
+    }
+
+    public InputManager getInputManager() {
+        return inputManager;
     }
 }

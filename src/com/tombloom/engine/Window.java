@@ -45,4 +45,12 @@ public class Window extends JFrame {
         graphics.drawImage(image, 0, 0, canvas.getWidth(), canvas.getWidth(), null);
         bufferStrategy.show();
     }
+
+    public Canvas getCanvas() {
+        return canvas;
+    }
+
+    public BufferedImage getImage() {
+        return image;
+    }
 }
